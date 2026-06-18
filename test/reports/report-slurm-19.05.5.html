@@ -1,0 +1,86 @@
+<!doctype html><html lang=en><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>telegraf-slurm-cfg — test report</title>
+<style>
+:root{--bg:#0f1419;--card:#1a2029;--ink:#e6e6e6;--mut:#8b97a7;--line:#2a323d;--ok:#2ea043;--no:#d1242f;--acc:#58a6ff}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:920px;margin:0 auto;padding:32px 20px}h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:28px 0 6px}
+.sub{color:var(--mut);margin:0 0 20px;font-size:13px}
+.summary{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.score{font-size:28px;font-weight:700}
+table.env{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px}
+table.env td,table.env th{padding:9px 16px;border-bottom:1px solid var(--line);text-align:left}table.env tr:last-child td{border-bottom:0}
+table.env th{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:16px}
+.cardhead{display:flex;justify-content:space-between;align-items:center}.name{font-size:17px;font-weight:600}
+.meta{color:var(--mut);margin:4px 0 10px;font-size:13px}
+.lbl{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin:12px 0 4px}
+code{color:var(--acc)}pre{background:#0b0f14;border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow:auto;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:0}
+pre.bad{color:#ffa198}
+.b{font-weight:700;font-size:11px;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.b.pass{background:rgba(46,160,67,.15);color:#3fb950;border:1px solid var(--ok)}
+.b.fail{background:rgba(209,36,47,.15);color:#ff7b72;border:1px solid var(--no)}
+.foot{color:var(--mut);font-size:12px;text-align:center;margin-top:24px}
+</style></head><body><div class=wrap>
+<h1>telegraf-slurm-cfg — test report</h1>
+<p class=sub>Monitoring Slurm with Telegraf config only — no scripts.</p>
+<div class=summary><span class=score>4 / 4</span><span class="b pass">ALL PASSED</span><span style="color:var(--mut)">collectors verified &middot; </span></div>
+<h2>Environment</h2>
+<table class=env>
+<tr><td>Generated</td><td>2026-06-18 02:46:03 UTC</td></tr>
+<tr><td>Git commit</td><td><code>n/a (dirty)</code></td></tr>
+<tr><td>OS</td><td>Ubuntu 20.04.6 LTS</td></tr>
+<tr><td>Telegraf</td><td>Telegraf 1.33.1 (git: HEAD@44f3a504)</td></tr>
+<tr><td>Slurm</td><td>slurm-wlm 19.05.5</td></tr>
+<tr><td>InfluxDB</td><td>n/a (not required)</td></tr>
+</table>
+<h2>Collectors</h2>
+
+  <div class=card>
+    <div class=cardhead><span class=name>squeue &rarr; <code>slurm_queue</code></span><span class='b pass'>PASS</span></div>
+    <p class=meta>mode: <b>live</b> &middot; rows: <b>20</b> &middot; checks: <b>10</b></p>
+    <p class=lbl>command</p><pre>["squeue --all --noheader --format=%i|%P|%T|%u|%a|%q|%C|%D|%Q|%l|%M|%N|%r"]</pre>
+    
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_queue,account=physics,host=slurmnode,job_id=15,partition=debug,qos=normal,reason=Resources,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=4294901746i,time_limit="UNLIMITED",time_used="0:00" 1781750764000000000
+slurm_queue,account=physics,host=slurmnode,job_id=16,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=4294901745i,time_limit="UNLIMITED",time_used="0:00" 1781750764000000000
+slurm_queue,account=physics,host=slurmnode,job_id=17,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=4294901744i,time_limit="UNLIMITED",time_used="0:00" 1781750764000000000
+slurm_queue,account=physics,host=slurmnode,job_id=18,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=4294901743i,time_limit="UNLIMITED",time_used="0:00" 1781750764000000000
+slurm_queue,account=physics,host=slurmnode,job_id=19,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=4294901742i,time_limit="UNLIMITED",time_used="0:00" 1781750764000000000
+slurm_queue,account=physics,host=slurmnode,job_id=20,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=4294901741i,time_limit="UNLIMITED",time_used="0:00" 1781750764000000000</pre>
+    
+  </div>
+  <div class=card>
+    <div class=cardhead><span class=name>sinfo &rarr; <code>slurm_nodes</code></span><span class='b pass'>PASS</span></div>
+    <p class=meta>mode: <b>live</b> &middot; rows: <b>2</b> &middot; checks: <b>6</b></p>
+    <p class=lbl>command</p><pre>["sinfo --noheader --format=%R|%T|%D|%C|%m"]</pre>
+    
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_nodes,host=slurmnode,partition=debug,state=allocated cpus_state="24/0/0/24",memory_mb=1i,nodes=1i 1781750764000000000
+slurm_nodes,host=slurmnode,partition=gpu,state=allocated cpus_state="24/0/0/24",memory_mb=1i,nodes=1i 1781750764000000000</pre>
+    
+  </div>
+  <div class=card>
+    <div class=cardhead><span class=name>sacct &rarr; <code>slurm_accounting</code></span><span class='b pass'>PASS</span></div>
+    <p class=meta>mode: <b>fixture</b> &middot; rows: <b>4</b> &middot; checks: <b>10</b></p>
+    <p class=lbl>command</p><pre>["sacct --allusers --allocations --parsable2 --noheader --starttime now-6minutes --endtime now --state=CD,F,TO,CA,NF,OOM,DL,PR --format=JobID,Partition,State,User,Account,QOS,AllocCPUS,NNodes,ElapsedRaw,CPUTimeRAW,ReqMem,Start,End,Submit,ExitCode"]</pre>
+    <p class=lbl>fixture input</p><pre>128837|gpu|COMPLETED|alice|physics|normal|32|1|3725|119200|64Gn|2026-06-15T10:00:00|2026-06-15T11:02:05|2026-06-15T09:59:50|0:0
+128840|cpu|FAILED|bob|chem|long|8|1|12|96|4Gc|2026-06-15T10:30:00|2026-06-15T10:30:12|2026-06-15T10:29:00|1:0
+128841|cpu|TIMEOUT|carol|chem|normal|16|1|3600|57600|8Gn|2026-06-15T09:00:00|2026-06-15T10:00:00|2026-06-15T08:59:00|0:15</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_accounting,account=physics,host=slurmnode,job_id=128837,partition=gpu,qos=normal,state=COMPLETED,user=alice cpu_sec=119200i,cpus=32i,elapsed_sec=3725i,exit_code="0:0",nodes=1i,req_mem="64Gn",start="2026-06-15T10:00:00",submit="2026-06-15T09:59:50" 1781521325000000000
+slurm_accounting,account=chem,host=slurmnode,job_id=128840,partition=cpu,qos=long,state=FAILED,user=bob cpu_sec=96i,cpus=8i,elapsed_sec=12i,exit_code="1:0",nodes=1i,req_mem="4Gc",start="2026-06-15T10:30:00",submit="2026-06-15T10:29:00" 1781519412000000000
+slurm_accounting,account=chem,host=slurmnode,job_id=128841,partition=cpu,qos=normal,state=TIMEOUT,user=carol cpu_sec=57600i,cpus=16i,elapsed_sec=3600i,exit_code="0:15",nodes=1i,req_mem="8Gn",start="2026-06-15T09:00:00",submit="2026-06-15T08:59:00" 1781517600000000000
+slurm_accounting,account=ml,host=slurmnode,job_id=128842,partition=gpu,qos=high,state=CANCELLED,user=dave cpu_sec=2880i,cpus=64i,elapsed_sec=45i,exit_code="0:0",nodes=2i,req_mem="128Gn",start="2026-06-15T11:00:00",submit="2026-06-15T10:58:00" 1781521245000000000</pre>
+    
+  </div>
+  <div class=card>
+    <div class=cardhead><span class=name>sdiag &rarr; <code>slurm_scheduler</code></span><span class='b pass'>PASS</span></div>
+    <p class=meta>mode: <b>fixture</b> &middot; rows: <b>1</b> &middot; checks: <b>6</b></p>
+    <p class=lbl>command</p><pre>["sdiag --json"]</pre>
+    <p class=lbl>fixture input</p><pre>{
+  "meta": { "plugin": { "data_parser": "data_parser/v0.0.44" }, "slurm": { "release": "25.11.2" } },
+  "errors": [], "warnings": [],</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_scheduler,host=slurmnode agent_count=2,agent_queue_size=0,agent_thread_count=4,bf_active=false,bf_backfilled_het_jobs=0,bf_backfilled_jobs=890,bf_cycle_counter=2310,bf_cycle_last=455321,bf_cycle_max=982110,bf_cycle_mean=312045,bf_cycle_sum=720823950,bf_depth_mean=51,bf_depth_mean_try=22,bf_depth_sum=117810,bf_depth_try_sum=40320,bf_last_backfilled_jobs=43,bf_last_depth=233,bf_last_depth_try=80,bf_queue_len=470,bf_queue_len_mean=388,bf_queue_len_sum=896280,bf_table_size=233,bf_table_size_mean=233,bf_table_size_sum=538230,dbd_agent_queue_size=0,gettimeofday_latency=22,jobs_canceled=37,jobs_completed=1388,jobs_failed=2,jobs_pending=512,jobs_running=128,jobs_started=1402,jobs_submitted=1543,schedule_cycle_depth=126014,schedule_cycle_last=842,schedule_cycle_max=120345,schedule_cycle_mean=1187,schedule_cycle_mean_depth=14,schedule_cycle_per_minute=41,schedule_cycle_sum=10684787,schedule_cycle_total=9001,schedule_queue_length=480,server_thread_count=3 1781750765000000000</pre>
+    
+  </div>
+<h2>Field data types in InfluxDB</h2><p class=sub>Skipped — no <code>influx</code> CLI configured. Run on a host with InfluxDB to verify stored datatypes.</p>
+<p class=foot>Re-run anytime with <code>./test/run-tests.sh</code>. Live Slurm is used automatically when present; otherwise bundled fixtures keep the test reproducible.</p>
+</div></body></html>

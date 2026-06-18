@@ -209,6 +209,30 @@ and writes a clean **HTML report** capturing the git commit and the OS /
 Telegraf / Slurm / InfluxDB versions — so it's easy to re-validate against new
 versions with one command. See [`test/`](test/).
 
+### Tested against real Slurm (19.05 → 25.11)
+
+These collectors are validated against a **real single-node Slurm cluster (with
+`slurmdbd`)** spun up in Docker — one command per version:
+
+```bash
+./test/docker-test.sh ubuntu:24.04    # Slurm 23.11, full live run
+./test/docker-matrix.sh               # all versions below
+```
+
+| Ubuntu | Slurm | squeue | sinfo | sacct | sdiag |
+|--------|-------|:------:|:-----:|:-----:|:-----:|
+| 20.04 | 19.05 | ✅ live | ✅ live | fixture¹ | fixture² |
+| 22.04 | 21.08 | ✅ live | ✅ live | ✅ live | fixture² |
+| 24.04 | 23.11 | ✅ live | ✅ live | ✅ live | ✅ live |
+| 26.04 | 25.11 | ✅ live | ✅ live | ✅ live | ✅ live |
+
+All four pass. `squeue`/`sinfo` run live on every version; `sacct` and `sdiag`
+are validated live on every version that supports them. ¹ Slurm 19.05 can't
+launch jobs on a cgroup-v2 host, so there's no finished-job data — `sacct` uses
+the fixture there. ² `sdiag --json` doesn't exist before Slurm 23.02. The HTML
+report for each version is committed under [`test/reports/`](test/reports/); the
+harness lives in [`test/docker/`](test/docker/).
+
 ---
 
 ## Dashboards
