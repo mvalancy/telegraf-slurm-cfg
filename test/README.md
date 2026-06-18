@@ -21,9 +21,11 @@ flowchart LR
 | `docker-test.sh <image>` | Spin up a **real** single-node Slurm cluster in Docker and run the tests against it. |
 | `docker-matrix.sh` | Do that for several Slurm versions at once and build a summary. |
 | `refresh-reports.sh` | One command to rebuild everything under `reports/`. |
+| `preview-dashboards.py` | Render the sample dashboard images: simulate a cluster, write it to InfluxDB, run the real `dashboards/*.flux` queries, save one PNG per dashboard. |
 | `lib.sh` | Shared helpers — you don't run this directly. |
 | `docker/` | The Dockerfile + start-up script for the throwaway Slurm cluster. |
 | `reports/` | The committed HTML results (start at `reports/index.html`). |
+| `dashboard/` | The committed dashboard preview PNGs (the quad grid in the top-level README). |
 
 ## Check one collector
 
@@ -94,3 +96,20 @@ Rebuild them all in one go:
 ```bash
 ./test/refresh-reports.sh         # needs Docker + the influx CLI
 ```
+
+## The dashboard previews
+
+The PNGs under `dashboard/` (and the quad grid in the top-level README) are
+generated, not hand-made. `preview-dashboards.py` simulates ~3 hours of a small
+cluster, writes that history to a throwaway `slurm_demo` bucket, runs the **same
+queries** shipped in `dashboards/*.flux`, and draws one image per dashboard — so
+the screenshots can't drift far from the real queries.
+
+```bash
+python3 test/preview-dashboards.py            # writes test/dashboard/*.png
+python3 test/preview-dashboards.py --out /tmp  # render somewhere else
+```
+
+Needs `matplotlib` and the `influx` CLI (the same one the round-trip check uses).
+It's a developer tool for refreshing the screenshots — you never need it to
+deploy or use the collectors.

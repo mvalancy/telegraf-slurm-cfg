@@ -21,5 +21,6 @@ slurm-*.out
 # Intermediate matrix record (docker-matrix.sh rebuilds it + index.html)
 /test/reports/.matrix.tsv
 
-# Rendered dashboard previews (regenerate with the render script)
-/output/
+# Python bytecode (e.g. from preview-dashboards.py)
+__pycache__/
+*.pyc

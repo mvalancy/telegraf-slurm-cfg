@@ -9,9 +9,25 @@ parsers turn that straight into metrics. That's the whole trick.
 
 > **Just want to deploy?** Download the latest zip from the
 > [**Releases**](https://github.com/mvalancy/telegraf-slurm-cfg/releases) page — a
-> slim README + the `telegraf.d/` configs, nothing else. (Or build it yourself:
-> `./build.sh`.) Everything below is the full reference: how it works, dashboards,
-> and how it's tested.
+> slim README + the `telegraf.d/` collectors and `dashboards/`, nothing else. (Or
+> build it yourself: `./build.sh`.) Everything below is the full reference: how it
+> works, dashboards, and how it's tested.
+
+---
+
+## Dashboard previews
+
+A quick look at the four dashboards. These are rendered from **synthetic demo
+data** — exactly what the bundled Flux queries in [`dashboards/`](dashboards/)
+draw, top-left clockwise: scheduler, queue, accounting, nodes.
+
+| | |
+|:-:|:-:|
+| [![slurm_scheduler dashboard](test/dashboard/dashboard-scheduler.png)](test/dashboard/dashboard-scheduler.png) | [![slurm_queue dashboard](test/dashboard/dashboard-queue.png)](test/dashboard/dashboard-queue.png) |
+| [![slurm_nodes dashboard](test/dashboard/dashboard-nodes.png)](test/dashboard/dashboard-nodes.png) | [![slurm_accounting dashboard](test/dashboard/dashboard-accounting.png)](test/dashboard/dashboard-accounting.png) |
+
+Regenerate them any time with `python3 test/preview-dashboards.py` (needs
+`matplotlib` + the `influx` CLI). It's a dev tool — not needed to use the collectors.
 
 ---
 
@@ -299,7 +315,8 @@ the InfluxDB round-trip example. The harness lives in
 
 [`dashboards/`](dashboards/) is a copy-paste Flux cookbook — queue, nodes,
 scheduler, and accounting panels for InfluxDB Data Explorer or Grafana. Start
-there; each `// ── Panel: …` block is one graph.
+there; each `// ── Panel: …` block is one graph. See the [dashboard
+previews](#dashboard-previews) above for what they render.
 
 ---
 
@@ -338,7 +355,7 @@ get a gap in the data (the gap is the signal) — the configs don't hide that.
 ## Releases & packaging
 
 Tagged releases ship a ready-to-copy zip — a slim deploy README + `LICENSE` +
-the `telegraf.d/` folder, nothing else. To cut one:
+the `telegraf.d/` collectors and the `dashboards/` queries, nothing else. To cut one:
 
 ```bash
 git tag v1.0.0
