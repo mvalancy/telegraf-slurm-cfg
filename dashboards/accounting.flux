@@ -50,3 +50,20 @@ from(bucket: "slurm")
   |> group()
   |> mean()
   |> rename(columns: {_value: "avg_runtime_sec"})
+
+
+// ── Panel: GPU-hours by account ──────────────────────────────────────────────
+// gpus is the job's TOTAL GPUs (sacct AllocTRES). GPU-hours = gpus * elapsed/3600.
+// Pivot gpus and elapsed_sec together per job, then sum per account.
+from(bucket: "slurm")
+  |> range(start: -30d)
+  |> filter(fn: (r) => r._measurement == "slurm_accounting" and (r._field == "gpus" or r._field == "elapsed_sec"))
+  |> keep(columns: ["job_id", "account", "_field", "_value"])
+  |> pivot(rowKey: ["job_id", "account"], columnKey: ["_field"], valueColumn: "_value")
+  |> map(fn: (r) => ({account: r.account, _value: float(v: r.gpus) * float(v: r.elapsed_sec) / 3600.0}))
+  |> filter(fn: (r) => r._value > 0.0)
+  |> group(columns: ["account"])
+  |> sum()
+  |> rename(columns: {_value: "gpu_hours"})
+  |> group()
+  |> sort(columns: ["gpu_hours"], desc: true)

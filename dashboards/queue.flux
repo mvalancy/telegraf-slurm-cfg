@@ -88,3 +88,44 @@ from(bucket: "slurm")
   |> group(columns: ["state"])
   |> aggregateWindow(every: 30s, fn: count, createEmpty: false)
   |> rename(columns: {_value: "jobs"})
+
+
+// ── Panel: GPUs in use by partition (now) ────────────────────────────────────
+// gpus is GPUs PER NODE (squeue %b); a running job's total = gpus * nodes. Pivot
+// the two fields together per job, multiply, then sum the running jobs per
+// partition. Plot against slurm_nodes' "GPU capacity" panel to see GPUs free.
+import "experimental"
+from(bucket: "slurm")
+  |> range(start: -15m)
+  |> filter(fn: (r) => r._measurement == "slurm_queue" and r.state == "RUNNING")
+  |> filter(fn: (r) => r._field == "gpus" or r._field == "nodes")
+  |> last()
+  |> filter(fn: (r) => r._time >= experimental.subDuration(d: 90s, from: now()))
+  |> keep(columns: ["job_id", "partition", "_field", "_value"])
+  |> pivot(rowKey: ["job_id", "partition"], columnKey: ["_field"], valueColumn: "_value")
+  |> map(fn: (r) => ({partition: r.partition, _value: r.gpus * r.nodes}))
+  |> filter(fn: (r) => r._value > 0)
+  |> group(columns: ["partition"])
+  |> sum()
+  |> rename(columns: {_value: "gpus_in_use"})
+
+
+// ── Panel: GPUs held by user (now) ───────────────────────────────────────────
+// Who's holding GPUs right now — sum of (gpus * nodes) over each user's running
+// jobs. Handy for spotting who to ask when the GPU partition is full.
+import "experimental"
+from(bucket: "slurm")
+  |> range(start: -15m)
+  |> filter(fn: (r) => r._measurement == "slurm_queue" and r.state == "RUNNING")
+  |> filter(fn: (r) => r._field == "gpus" or r._field == "nodes")
+  |> last()
+  |> filter(fn: (r) => r._time >= experimental.subDuration(d: 90s, from: now()))
+  |> keep(columns: ["job_id", "user", "_field", "_value"])
+  |> pivot(rowKey: ["job_id", "user"], columnKey: ["_field"], valueColumn: "_value")
+  |> map(fn: (r) => ({user: r.user, _value: r.gpus * r.nodes}))
+  |> filter(fn: (r) => r._value > 0)
+  |> group(columns: ["user"])
+  |> sum()
+  |> rename(columns: {_value: "gpus"})
+  |> group()
+  |> sort(columns: ["gpus"], desc: true)

@@ -1,5 +1,5 @@
-128411|gpu|RUNNING|alice|physics|normal|32|1|4294901760|1-00:00:00|2:14:08|gpu-node-007|None
-128410|gpu|RUNNING|alice|physics|normal|16|1|4294901000|1-00:00:00|5:01:22|gpu-node-006|None
-128412|cpu|PENDING|bob|chem|long|256|8|100|UNLIMITED|0:00||Resources
-128413|cpu|PENDING|carol|chem|normal|8|1|200|1:00:00|0:00||Priority
-128414|gpu|PENDING|dave|ml|high|64|2|5000|2-00:00:00|0:00||ReqNodeNotAvail, UnavailableNodes:node[01-20]
+128411|gpu|RUNNING|alice|physics|normal|32|1|4294901760|1-00:00:00|2:14:08|gpu-node-007|None|gres/gpu:4
+128410|gpu|RUNNING|alice|physics|normal|16|1|4294901000|1-00:00:00|5:01:22|gpu-node-006|None|gres/gpu:2
+128412|cpu|PENDING|bob|chem|long|256|8|100|UNLIMITED|0:00||Resources|N/A
+128413|cpu|PENDING|carol|chem|normal|8|1|200|1:00:00|0:00||Priority|N/A
+128414|gpu|PENDING|dave|ml|high|64|2|5000|2-00:00:00|0:00||ReqNodeNotAvail, UnavailableNodes:node[01-20]|gres/gpu:8

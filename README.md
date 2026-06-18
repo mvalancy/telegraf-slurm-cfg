@@ -162,13 +162,30 @@ Then:
 
 | Command | Measurement | Tags | Numeric fields (plottable) | String fields (labels) |
 |---------|-------------|------|----------------------------|------------------------|
-| `squeue` | **`slurm_queue`** | job_id, partition, state, user, account, qos, reason | cpus, nodes, priority | time_limit, time_used, nodelist |
-| `sinfo`  | **`slurm_nodes`** | partition, state | nodes | cpus_state, memory_mb |
-| `sacct`  | **`slurm_accounting`** | job_id, partition, state, user, account, qos | cpus, nodes, elapsed_sec, cpu_sec | req_mem, start, submit, exit_code |
+| `squeue` | **`slurm_queue`** | job_id, partition, state, user, account, qos, reason | cpus, nodes, gpus, priority | time_limit, time_used, nodelist |
+| `sinfo`  | **`slurm_nodes`** | partition, state, gpus_per_node | nodes | cpus_state, memory_mb |
+| `sacct`  | **`slurm_accounting`** | job_id, partition, state, user, account, qos | cpus, nodes, gpus, elapsed_sec, cpu_sec | req_mem, start, submit, exit_code |
 | `sdiag`  | **`slurm_scheduler`** | *(host only)* | ~40 scheduler/backfill counters | — |
 
 `host` is added automatically by Telegraf. Uncomment `[inputs.exec.tags]` in any
 file to add a static `cluster` tag.
+
+### GPU monitoring (Slurm GRES)
+
+GPUs come straight from Slurm's GRES, no extra agent:
+
+- **`slurm_queue.gpus`** — GPUs **per node** for each job (`squeue %b`); a job's
+  total = `gpus * nodes`. → **GPUs in use** / pending GPU demand, per partition or user.
+- **`slurm_nodes.gpus_per_node`** — GPUs **configured** per node (`sinfo %G`), a tag.
+  → **total GPU capacity** per partition (`gpus_per_node * nodes`). Capacity − in-use = free.
+- **`slurm_accounting.gpus`** — **total** GPUs each finished job used (`sacct AllocTRES`).
+  → **GPU-hours** per account (`gpus * elapsed_sec / 3600`).
+
+Ready-made GPU panels are in [`dashboards/`](dashboards/) (queue: *GPUs in use by
+partition*, *GPUs held by user*; nodes: *GPU capacity by partition*; accounting:
+*GPU-hours by account*). Note this is GPU **allocation** from the scheduler — on-card
+**memory / utilization / temperature** aren't in Slurm; collect those with Telegraf's
+built-in `[[inputs.nvidia_smi]]` on the GPU nodes.
 
 ---
 
@@ -180,8 +197,8 @@ One point per job currently running or waiting.
 [`telegraf.d/slurm-squeue.conf`](telegraf.d/slurm-squeue.conf)
 
 ```
-slurm_queue,host=login01,job_id=128411,partition=gpu,state=RUNNING,user=alice,account=physics,qos=normal,reason=None cpus=32i,nodes=1i,priority=4294901760i,time_limit="1-00:00:00",time_used="2:14:08",nodelist="gpu-node-007"
-slurm_queue,host=login01,job_id=128412,partition=cpu,state=PENDING,user=bob,account=chem,qos=long,reason=Resources cpus=256i,nodes=8i,priority=100i,time_limit="UNLIMITED",time_used="0:00",nodelist=""
+slurm_queue,host=login01,job_id=128411,partition=gpu,state=RUNNING,user=alice,account=physics,qos=normal,reason=None cpus=32i,nodes=1i,gpus=4i,priority=4294901760i,time_limit="1-00:00:00",time_used="2:14:08",nodelist="gpu-node-007"
+slurm_queue,host=login01,job_id=128412,partition=cpu,state=PENDING,user=bob,account=chem,qos=long,reason=Resources cpus=256i,nodes=8i,gpus=0i,priority=100i,time_limit="UNLIMITED",time_used="0:00",nodelist=""
 ```
 
 Great for: running vs pending per partition, who's using the most CPUs, and
@@ -193,9 +210,9 @@ One point per partition + node-state (`sinfo` already aggregates the counts).
 [`telegraf.d/slurm-sinfo.conf`](telegraf.d/slurm-sinfo.conf)
 
 ```
-slurm_nodes,host=login01,partition=gpu,state=idle      nodes=4i,cpus_state="0/128/0/128",memory_mb="515000"
-slurm_nodes,host=login01,partition=gpu,state=allocated nodes=8i,cpus_state="256/0/0/256",memory_mb="515000"
-slurm_nodes,host=login01,partition=cpu,state=drain     nodes=1i,cpus_state="0/0/64/64",memory_mb="192000+"
+slurm_nodes,host=login01,partition=gpu,state=idle,gpus_per_node=8      nodes=4i,cpus_state="0/128/0/128",memory_mb="515000"
+slurm_nodes,host=login01,partition=gpu,state=allocated,gpus_per_node=8 nodes=8i,cpus_state="256/0/0/256",memory_mb="515000"
+slurm_nodes,host=login01,partition=cpu,state=drain,gpus_per_node=0     nodes=1i,cpus_state="0/0/64/64",memory_mb="192000+"
 ```
 
 Great for: how many nodes are down/draining, free vs busy capacity. The
@@ -214,7 +231,7 @@ One point per *ended* job, **stamped at the job's end time**.
 > is disabled"*, your cluster doesn't store this.
 
 ```
-slurm_accounting,host=login01,job_id=128837,partition=gpu,state=COMPLETED,user=alice,account=physics,qos=normal cpus=32i,nodes=1i,elapsed_sec=3725i,cpu_sec=119200i,req_mem="64Gn",start="2026-06-15T10:00:00",submit="2026-06-15T09:59:50",exit_code="0:0" 1750000000000000000
+slurm_accounting,host=login01,job_id=128837,partition=gpu,state=COMPLETED,user=alice,account=physics,qos=normal cpus=32i,nodes=1i,gpus=4i,elapsed_sec=3725i,cpu_sec=119200i,req_mem="64Gn",start="2026-06-15T10:00:00",submit="2026-06-15T09:59:50",exit_code="0:0" 1750000000000000000
 ```
 
 Great for: throughput, failure rates, CPU-hours per account, turnaround time. It
@@ -243,7 +260,8 @@ column's type, so they land in InfluxDB correctly:
 
 - **CSV collectors** (`slurm_queue`, `slurm_nodes`, `slurm_accounting`) set
   `csv_column_types`, so `cpus`, `nodes`, `priority`, `elapsed_sec`, `cpu_sec`
-  are stored as **`long`** (integers).
+  are stored as **`long`** (integers). `gpus` is also a **`long`** — it's
+  regex-extracted from a GRES/TRES string, then a `converter` casts it to integer.
 - **`slurm_scheduler`** comes from JSON, so its counters are stored as
   **`double`** (with `bf_active` a boolean).
 - Identifiers and human strings (`job_id`, `reason`, `time_limit`, `nodelist`,

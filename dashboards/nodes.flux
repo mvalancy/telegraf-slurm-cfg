@@ -61,3 +61,20 @@ from(bucket: "slurm")
   |> group(columns: ["partition"])
   |> aggregateWindow(every: 30s, fn: last, createEmpty: false)
   |> rename(columns: {_value: "idle_nodes"})
+
+
+// ── Panel: GPU capacity by partition (configured) ────────────────────────────
+// gpus_per_node is a TAG (sinfo %G). Total configured GPUs in a partition = sum
+// over its (state) groups of gpus_per_node * nodes. Plot this against the queue
+// dashboard's "GPUs in use" panel — the gap is GPUs free.
+import "experimental"
+from(bucket: "slurm")
+  |> range(start: -15m)
+  |> filter(fn: (r) => r._measurement == "slurm_nodes" and r._field == "nodes")
+  |> last()
+  |> filter(fn: (r) => r._time >= experimental.subDuration(d: 90s, from: now()))
+  |> map(fn: (r) => ({partition: r.partition, _value: r._value * int(v: r.gpus_per_node)}))
+  |> filter(fn: (r) => r._value > 0)
+  |> group(columns: ["partition"])
+  |> sum()
+  |> rename(columns: {_value: "gpus_total"})
