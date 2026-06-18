@@ -1,0 +1,8 @@
+# Editor / OS noise
+*.swp
+*~
+.DS_Store
+
+# Never commit secrets or local Telegraf output blocks
+*.local.conf
+secrets.conf
