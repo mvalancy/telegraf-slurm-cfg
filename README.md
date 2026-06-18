@@ -7,6 +7,12 @@ directory. No Python, no Bash wrappers, no cron jobs, nothing to maintain. The
 Slurm commands already print machine-readable output; Telegraf's built-in
 parsers turn that straight into metrics. That's the whole trick.
 
+> **Just want to deploy?** Download the latest zip from the
+> [**Releases**](https://github.com/mvalancy/telegraf-slurm-cfg/releases) page — a
+> slim README + the `telegraf.d/` configs, nothing else. (Or build it yourself:
+> `./build.sh`.) Everything below is the full reference: how it works, dashboards,
+> and how it's tested.
+
 ---
 
 ## Wait — what are Slurm, Telegraf, and InfluxDB?
@@ -281,6 +287,23 @@ left out. `csv_trim_space = true` guards against any column padding.
 
 **It fails loudly, by design.** If `slurmctld` is down the command errors and you
 get a gap in the data (the gap is the signal) — the configs don't hide that.
+
+---
+
+## Releases & packaging
+
+Tagged releases ship a ready-to-copy zip — a slim deploy README + `LICENSE` +
+the `telegraf.d/` folder, nothing else. To cut one:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The [release workflow](.github/workflows/release.yml) runs
+[`build.sh`](build.sh) and attaches `telegraf-slurm-cfg-v1.0.0.zip` to the GitHub
+Release. You can build the same package locally any time with `./build.sh`
+(output lands in `dist/`).
 
 ---
 

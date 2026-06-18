@@ -13,3 +13,7 @@ secrets.conf
 
 # Slurm job stdout files (created by sbatch in the working dir)
 slurm-*.out
+
+# Build output (run ./build.sh to regenerate)
+/dist/
+*.tar.gz
