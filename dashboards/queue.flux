@@ -3,22 +3,29 @@
 //
 // Copy ONE block at a time into InfluxDB Data Explorer (Script Editor) or a
 // Grafana panel. Replace the bucket name "slurm" with yours. For Grafana, swap
-// range(start: -5m) for range(start: v.timeRangeStart, stop: v.timeRangeStop).
+// range(start: -15m) for range(start: v.timeRangeStart, stop: v.timeRangeStop).
 //
-// Data model: one point per job per scrape; job_id AND state are tags. A job
-// that transitions PENDING->RUNNING therefore has TWO series (one per state).
-// To count each job ONCE in its CURRENT state, we collapse per job_id first
-// (group by job_id |> last() gives each job's most recent point) and only then
-// group by state. Skipping that job_id collapse double-counts transitioned jobs.
+// Data model: one point per job per scrape; job_id AND state are tags. Two
+// gotchas the "current" panels below handle:
+//   1. A job that went PENDING->RUNNING has TWO series — collapse per job_id
+//      (group by job_id |> last()) so it's counted once, in its current state.
+//   2. A job that already LEFT the queue still has an old last point. We drop it
+//      with a recency filter — keep only points from the latest scrape:
+//         |> filter(fn: (r) => r._time >= experimental.subDuration(d: 90s, from: now()))
+//      90s ≈ 2-3× the default 30s collection interval; set it to ~2-3× yours.
+//      (Without this, finished jobs inflate the counts — e.g. CPUs-in-use can
+//      read above a partition's real capacity.)
 // =============================================================================
 
 
 // ── Panel: jobs by state (pie / stat) ───────────────────────────────────────
+import "experimental"
 from(bucket: "slurm")
-  |> range(start: -5m)
+  |> range(start: -15m)
   |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")
   |> group(columns: ["job_id"])
-  |> last()                              // one point per job = its current state
+  |> last()                                                                  // each job's most recent point
+  |> filter(fn: (r) => r._time >= experimental.subDuration(d: 90s, from: now()))  // jobs still in the queue now
   |> group(columns: ["state"])
   |> count()
   |> rename(columns: {_value: "jobs"})
@@ -26,11 +33,13 @@ from(bucket: "slurm")
 
 // ── Panel: CPUs in use by partition (bar gauge) ──────────────────────────────
 // Total CPUs held by RUNNING jobs, per partition (current).
+import "experimental"
 from(bucket: "slurm")
-  |> range(start: -5m)
+  |> range(start: -15m)
   |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")
   |> group(columns: ["job_id"])
   |> last()
+  |> filter(fn: (r) => r._time >= experimental.subDuration(d: 90s, from: now()))
   |> filter(fn: (r) => r.state == "RUNNING")
   |> group(columns: ["partition"])
   |> sum()
@@ -38,11 +47,13 @@ from(bucket: "slurm")
 
 
 // ── Panel: top users by job count (table) ────────────────────────────────────
+import "experimental"
 from(bucket: "slurm")
-  |> range(start: -5m)
+  |> range(start: -15m)
   |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")
   |> group(columns: ["job_id"])
   |> last()
+  |> filter(fn: (r) => r._time >= experimental.subDuration(d: 90s, from: now()))
   |> group(columns: ["user"])
   |> count()
   |> rename(columns: {_value: "jobs"})
@@ -52,11 +63,13 @@ from(bucket: "slurm")
 
 // ── Panel: why are jobs pending? (table / pie) ───────────────────────────────
 // reason is a tag (trimmed to a bounded set by the collector's regex processor).
+import "experimental"
 from(bucket: "slurm")
-  |> range(start: -5m)
+  |> range(start: -15m)
   |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")
   |> group(columns: ["job_id"])
   |> last()
+  |> filter(fn: (r) => r._time >= experimental.subDuration(d: 90s, from: now()))
   |> filter(fn: (r) => r.state == "PENDING")
   |> group(columns: ["reason"])
   |> count()
