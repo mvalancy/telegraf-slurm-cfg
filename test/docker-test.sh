@@ -50,7 +50,8 @@ for _ in $(seq 1 45); do
 done
 echo
 
-ver="$(docker exec "$name" bash -c 'squeue --version' | awk '{print $2}')"
+ver="$(docker exec "$name" bash -c 'squeue --version' 2>/dev/null | awk '{print $2}')"
+[ -n "$ver" ] || ver="$slug"   # fall back to the image slug so the report name is never empty/colliding
 echo "==> [$BASE] Slurm $ver — testing collectors against live cluster"
 
 # copy the CURRENT repo configs/tests in and run the existing harness inside

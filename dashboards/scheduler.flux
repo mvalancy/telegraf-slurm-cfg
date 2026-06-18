@@ -43,7 +43,10 @@ from(bucket: "slurm")
 
 // ── Panel: jobs backfilled, rate per interval (time series) ──────────────────
 // bf_backfilled_jobs is a running counter since slurmctld start; difference()
-// turns it into "jobs backfilled per window".
+// turns it into "jobs backfilled per window". nonNegative:true absorbs the reset
+// to 0 on a slurmctld restart. Caveat: difference() spans gaps, so the value
+// right after Telegraf/slurmctld downtime covers the whole gap, not just 10m —
+// read spikes immediately after a data gap with that in mind.
 from(bucket: "slurm")
   |> range(start: -24h)
   |> filter(fn: (r) => r._measurement == "slurm_scheduler" and r._field == "bf_backfilled_jobs")

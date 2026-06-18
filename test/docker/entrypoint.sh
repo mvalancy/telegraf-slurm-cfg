@@ -5,7 +5,9 @@
 # same script works from Ubuntu 20.04 through 26.04. Driven by ../docker-test.sh.
 set -e
 log() { echo "[entrypoint] $*"; }
-pick() { for c in "$@"; do command -v "$c" >/dev/null 2>&1 && { echo "$c"; return; }; done; }
+# Echo the first available command name; never returns nonzero (a nonzero return
+# from a $(...) assignment would abort the script under `set -e`).
+pick() { local c; for c in "$@"; do command -v "$c" >/dev/null 2>&1 && { echo "$c"; return 0; }; done; return 0; }
 
 MARIADBD="$(pick mariadbd-safe mysqld_safe)"
 DBADMIN="$(pick mariadb-admin mysqladmin)"
@@ -45,12 +47,15 @@ log "munge up"
 # ── mariadb (Slurm accounting store) ─────────────────────────────────────────
 install -d -o mysql -g mysql /run/mysqld /var/lib/mysql /var/lib/mysql/tmp
 chmod 1777 /tmp   # InnoDB writes temp files here; some base images ship /tmp non-sticky
-[ -d /var/lib/mysql/mysql ] || $DBINIT --user=mysql --datadir=/var/lib/mysql --auth-root-authentication-method=normal >/dev/null 2>&1
+[ -d /var/lib/mysql/mysql ] || $DBINIT --user=mysql --datadir=/var/lib/mysql --auth-root-authentication-method=normal >/var/log/mariadb-init.log 2>&1 \
+  || { log "mariadb-install-db failed:"; tail -n 20 /var/log/mariadb-init.log 2>/dev/null; exit 1; }
 $MARIADBD --user=mysql --datadir=/var/lib/mysql --tmpdir=/var/lib/mysql/tmp >/var/log/mariadb.log 2>&1 &
-for _ in $(seq 1 60); do $DBADMIN ping >/dev/null 2>&1 && break; sleep 1; done
+db_up=0; for _ in $(seq 1 60); do $DBADMIN ping >/dev/null 2>&1 && { db_up=1; break; }; sleep 1; done
+[ "$db_up" = 1 ] || { log "mariadb did not become ready in 60s:"; tail -n 20 /var/log/mariadb.log 2>/dev/null; exit 1; }
 $DBCLI -e "CREATE DATABASE IF NOT EXISTS slurm_acct_db;
  CREATE USER IF NOT EXISTS 'slurm'@'localhost' IDENTIFIED BY 'slurmpass';
- GRANT ALL ON slurm_acct_db.* TO 'slurm'@'localhost'; FLUSH PRIVILEGES;"
+ GRANT ALL ON slurm_acct_db.* TO 'slurm'@'localhost'; FLUSH PRIVILEGES;" \
+  || { log "mariadb GRANT failed:"; tail -n 20 /var/log/mariadb.log 2>/dev/null; exit 1; }
 log "mariadb up ($MARIADBD)"
 
 # ── directories ──────────────────────────────────────────────────────────────
@@ -138,10 +143,14 @@ sacctmgr -i add user root account=physics >/dev/null 2>&1 || true
 #    what gives sacct real finished-job data. Wait for it before flooding the
 #    node, otherwise the long jobs below would starve it and it'd never run.
 WJ="$(sbatch -p debug -A physics -J warmup --wrap 'sleep 2' 2>/dev/null | awk '{print $NF}')"
-for _ in $(seq 1 25); do
-  [ "$(sacct -nX -j "${WJ:-0}" -o State%30 2>/dev/null | tr -d ' \n')" = COMPLETED ] && break
-  sleep 2
-done
+if [ -n "$WJ" ]; then
+  for _ in $(seq 1 25); do
+    [ "$(sacct -nX -j "$WJ" -o State%30 2>/dev/null | tr -d ' \n')" = COMPLETED ] && break
+    sleep 2
+  done
+else
+  log "warmup sbatch produced no job id (no job execution on this version/host)"
+fi
 # 2) flood with longer jobs so squeue shows RUNNING *and* PENDING (the latter
 #    exercises the pending-reason tag).
 for i in $(seq 1 20); do

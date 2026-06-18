@@ -4,6 +4,11 @@
 // Copy ONE block into InfluxDB Data Explorer or a Grafana panel. Replace the
 // bucket name "slurm" with yours. sinfo already groups by (partition, state),
 // so the `nodes` field is a node count per group.
+//
+// Note: these "current" panels use last() over a short window. When a
+// (partition,state) group empties, sinfo stops emitting it, so last() can hold a
+// stale count until the window slides past. Keep the range close to a couple of
+// scrape intervals (e.g. -2m to -5m) to bound that staleness.
 // =============================================================================
 
 
@@ -31,10 +36,12 @@ from(bucket: "slurm")
 
 
 // ── Panel: problem nodes — down / drained / failing (stat, alert) ────────────
+// Broad match over the unhealthy base states (the collector strips Slurm's
+// flag-suffix chars, so e.g. "down~" is stored as "down").
 from(bucket: "slurm")
   |> range(start: -5m)
   |> filter(fn: (r) => r._measurement == "slurm_nodes" and r._field == "nodes")
-  |> filter(fn: (r) => r.state =~ /down|drain|fail|maint|unknown/)
+  |> filter(fn: (r) => r.state =~ /down|drain|fail|err|maint|unknown|reboot|power|invalid|future|planned/)
   |> last()
   |> group()
   |> sum()

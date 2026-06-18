@@ -27,7 +27,7 @@ pre.bad{color:#ffa198}
 <div class=summary><span class=score>4 / 4</span><span class="b pass">ALL PASSED</span><span style="color:var(--mut)">collectors verified &middot; </span></div>
 <h2>Environment</h2>
 <table class=env>
-<tr><td>Generated</td><td>2026-06-18 02:50:03 UTC</td></tr>
+<tr><td>Generated</td><td>2026-06-18 03:34:35 UTC</td></tr>
 <tr><td>Git commit</td><td><code>n/a (dirty)</code></td></tr>
 <tr><td>OS</td><td>Ubuntu 26.04 LTS</td></tr>
 <tr><td>Telegraf</td><td>Telegraf 1.33.1 (git: HEAD@44f3a504)</td></tr>
@@ -41,12 +41,12 @@ pre.bad{color:#ffa198}
     <p class=meta>mode: <b>live</b> &middot; rows: <b>20</b> &middot; checks: <b>10</b></p>
     <p class=lbl>command</p><pre>["squeue --all --noheader --format=%i|%P|%T|%u|%a|%q|%C|%D|%Q|%l|%M|%N|%r"]</pre>
     
-    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_queue,account=physics,host=slurmnode,job_id=14,partition=debug,qos=normal,reason=Resources,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781751004000000000
-slurm_queue,account=physics,host=slurmnode,job_id=15,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781751004000000000
-slurm_queue,account=physics,host=slurmnode,job_id=16,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781751004000000000
-slurm_queue,account=physics,host=slurmnode,job_id=17,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781751004000000000
-slurm_queue,account=physics,host=slurmnode,job_id=18,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781751004000000000
-slurm_queue,account=physics,host=slurmnode,job_id=19,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781751004000000000</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_queue,account=physics,host=slurmnode,job_id=14,partition=debug,qos=normal,reason=Resources,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781753675000000000
+slurm_queue,account=physics,host=slurmnode,job_id=15,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781753675000000000
+slurm_queue,account=physics,host=slurmnode,job_id=16,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781753675000000000
+slurm_queue,account=physics,host=slurmnode,job_id=17,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781753675000000000
+slurm_queue,account=physics,host=slurmnode,job_id=18,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781753675000000000
+slurm_queue,account=physics,host=slurmnode,job_id=19,partition=debug,qos=normal,reason=Priority,state=PENDING,user=root cpus=2i,nodelist="",nodes=1i,priority=1i,time_limit="UNLIMITED",time_used="0:00" 1781753675000000000</pre>
     
   </div>
   <div class=card>
@@ -54,16 +54,16 @@ slurm_queue,account=physics,host=slurmnode,job_id=19,partition=debug,qos=normal,
     <p class=meta>mode: <b>live</b> &middot; rows: <b>2</b> &middot; checks: <b>6</b></p>
     <p class=lbl>command</p><pre>["sinfo --noheader --format=%R|%T|%D|%C|%m"]</pre>
     
-    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_nodes,host=slurmnode,partition=debug,state=allocated cpus_state="24/0/0/24",memory_mb=1i,nodes=1i 1781751004000000000
-slurm_nodes,host=slurmnode,partition=gpu,state=allocated cpus_state="24/0/0/24",memory_mb=1i,nodes=1i 1781751004000000000</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_nodes,host=slurmnode,partition=debug,state=allocated cpus_state="24/0/0/24",memory_mb="1",nodes=1i 1781753675000000000
+slurm_nodes,host=slurmnode,partition=gpu,state=allocated cpus_state="24/0/0/24",memory_mb="1",nodes=1i 1781753675000000000</pre>
     
   </div>
   <div class=card>
     <div class=cardhead><span class=name>sacct &rarr; <code>slurm_accounting</code></span><span class='b pass'>PASS</span></div>
     <p class=meta>mode: <b>live</b> &middot; rows: <b>1</b> &middot; checks: <b>10</b></p>
-    <p class=lbl>command</p><pre>["sacct --allusers --allocations --parsable2 --noheader --starttime now-6minutes --endtime now --state=CD,F,TO,CA,NF,OOM,DL,PR --format=JobID,Partition,State,User,Account,QOS,AllocCPUS,NNodes,ElapsedRaw,CPUTimeRAW,ReqMem,Start,End,Submit,ExitCode"]</pre>
+    <p class=lbl>command</p><pre>['''sh -c 'sacct --allusers --allocations --parsable2 --noheader --starttime now-6minutes --endtime now --state=CD,F,TO,CA,NF,OOM,DL,PR --format=JobID,Partition,State,User,Account,QOS,AllocCPUS,NNodes,ElapsedRaw,CPUTimeRAW,ReqMem,Start,End,Submit,ExitCode | awk -F"|" "\$13 ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T/"' ''']</pre>
     
-    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_accounting,account=physics,host=slurmnode,job_id=1,partition=debug,qos=normal,state=COMPLETED,user=root cpu_sec=2i,cpus=1i,elapsed_sec=2i,exit_code="0:0",nodes=1i,req_mem="1M",start="2026-06-18T02:48:35",submit="2026-06-18T02:48:34" 1781750917000000000</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_accounting,account=physics,host=slurmnode,job_id=1,partition=debug,qos=normal,state=COMPLETED,user=root cpu_sec=2i,cpus=1i,elapsed_sec=2i,exit_code="0:0",nodes=1i,req_mem="1M",start="2026-06-18T03:33:06",submit="2026-06-18T03:33:05" 1781753588000000000</pre>
     
   </div>
   <div class=card>
@@ -71,7 +71,7 @@ slurm_nodes,host=slurmnode,partition=gpu,state=allocated cpus_state="24/0/0/24",
     <p class=meta>mode: <b>live</b> &middot; rows: <b>1</b> &middot; checks: <b>6</b></p>
     <p class=lbl>command</p><pre>["sdiag --json"]</pre>
     
-    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_scheduler,host=slurmnode agent_count=0,agent_queue_size=0,agent_thread_count=0,bf_active=false,bf_backfilled_het_jobs=0,bf_backfilled_jobs=0,bf_cycle_counter=2,bf_cycle_last=353,bf_cycle_max=360,bf_cycle_mean=356,bf_cycle_sum=713,bf_depth_mean=8,bf_depth_mean_try=8,bf_depth_sum=16,bf_depth_try_sum=16,bf_exit_bf_max_job_start=0,bf_exit_bf_max_job_test=0,bf_exit_bf_max_time=0,bf_exit_bf_node_space_size=0,bf_exit_end_job_queue=2,bf_exit_state_changed=0,bf_last_backfilled_jobs=0,bf_last_depth=8,bf_last_depth_try=8,bf_queue_len=8,bf_queue_len_mean=8,bf_queue_len_sum=16,bf_table_size=1,bf_table_size_mean=8,bf_table_size_sum=2,dbd_agent_queue_size=0,gettimeofday_latency=61,jobs_canceled=0,jobs_completed=1,jobs_failed=0,jobs_pending=8,jobs_running=12,jobs_started=13,jobs_submitted=21,parts_packed=0,schedule_cycle_depth=29,schedule_cycle_last=90,schedule_cycle_max=1868,schedule_cycle_mean=606,schedule_cycle_mean_depth=5,schedule_cycle_per_minute=5,schedule_cycle_sum=3031,schedule_cycle_total=5,schedule_exit_default_queue_depth=0,schedule_exit_end_job_queue=5,schedule_exit_licenses=0,schedule_exit_max_job_start=0,schedule_exit_max_rpc_cnt=0,schedule_exit_max_sched_time=0,schedule_queue_length=8,server_thread_count=1 1781751004000000000</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_scheduler,host=slurmnode agent_count=0,agent_queue_size=0,agent_thread_count=0,bf_active=false,bf_backfilled_het_jobs=0,bf_backfilled_jobs=0,bf_cycle_counter=3,bf_cycle_last=282,bf_cycle_max=328,bf_cycle_mean=290,bf_cycle_sum=870,bf_depth_mean=8,bf_depth_mean_try=8,bf_depth_sum=24,bf_depth_try_sum=24,bf_exit_bf_max_job_start=0,bf_exit_bf_max_job_test=0,bf_exit_bf_max_time=0,bf_exit_bf_node_space_size=0,bf_exit_end_job_queue=3,bf_exit_state_changed=0,bf_last_backfilled_jobs=0,bf_last_depth=8,bf_last_depth_try=8,bf_queue_len=8,bf_queue_len_mean=8,bf_queue_len_sum=24,bf_table_size=1,bf_table_size_mean=8,bf_table_size_sum=3,dbd_agent_queue_size=0,gettimeofday_latency=24,jobs_canceled=0,jobs_completed=1,jobs_failed=0,jobs_pending=8,jobs_running=12,jobs_started=13,jobs_submitted=21,parts_packed=0,schedule_cycle_depth=29,schedule_cycle_last=81,schedule_cycle_max=2624,schedule_cycle_mean=888,schedule_cycle_mean_depth=5,schedule_cycle_per_minute=5,schedule_cycle_sum=4441,schedule_cycle_total=5,schedule_exit_default_queue_depth=0,schedule_exit_end_job_queue=5,schedule_exit_licenses=0,schedule_exit_max_job_start=0,schedule_exit_max_rpc_cnt=0,schedule_exit_max_sched_time=0,schedule_queue_length=8,server_thread_count=1 1781753676000000000</pre>
     
   </div>
 <h2>Field data types in InfluxDB</h2><p class=sub>Skipped — no <code>influx</code> CLI configured. Run on a host with InfluxDB to verify stored datatypes.</p>

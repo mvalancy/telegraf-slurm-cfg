@@ -36,7 +36,7 @@ collector_expect() {
 collector_numeric() {
   case "$1" in
     squeue) echo "cpus nodes priority";;
-    sinfo)  echo "nodes memory_mb";;
+    sinfo)  echo "nodes";;   # memory_mb is intentionally a string (can be "192000+"/"N/A")
     sacct)  echo "cpus nodes elapsed_sec cpu_sec";;
     sdiag)  echo "jobs_pending jobs_running jobs_submitted schedule_cycle_mean bf_cycle_mean server_thread_count";;
   esac
@@ -50,14 +50,24 @@ collector_mode() {
 }
 
 # Print the line protocol a collector would emit. Args: plugin [live|fixture]
+# Fixture mode swaps only the command (to `cat <fixture>`), keeping the real
+# parser config. Uses a ["cat","<path>"] argv form so paths with spaces work,
+# and surfaces telegraf's own errors if nothing came out.
 run_collector() {
-  local plugin="$1" mode="${2:-fixture}" conf tmp=""
+  local plugin="$1" mode="${2:-fixture}" conf tmp="" err out
   conf="$(collector_conf "$plugin")"
   if [ "$mode" = fixture ]; then
     tmp="$(mktemp)"
-    sed "s#^  commands = .*#  commands = [\"sh -c 'cat $(collector_fixture "$plugin")'\"]#" "$conf" > "$tmp"
+    # ONE command element ("cat '<path>'"); Telegraf treats each array element as
+    # a separate command, so cat+path must be a single string. The single-quoted
+    # path keeps spaces intact; `|` sed delimiter avoids clashing with '#' in paths.
+    sed "s|^  commands = .*|  commands = [\"cat '$(collector_fixture "$plugin")'\"]|" "$conf" > "$tmp"
     conf="$tmp"
   fi
-  "$TELEGRAF" --test --config "$conf" 2>/dev/null | sed 's/^> //'
-  [ -n "$tmp" ] && rm -f "$tmp"
+  err="$(mktemp)"
+  out="$("$TELEGRAF" --test --config "$conf" 2>"$err" | sed 's/^> //')"
+  # If a collector produced nothing, show telegraf's diagnostics (don't hide them).
+  [ -z "$out" ] && [ -s "$err" ] && sed 's/^/  telegraf: /' "$err" >&2
+  rm -f "$tmp" "$err"
+  printf '%s\n' "$out"
 }

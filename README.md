@@ -104,7 +104,7 @@ picks the parser. Everything lives in the `.conf`.
 | Command | Measurement | Tags | Numeric fields (plottable) | String fields (labels) |
 |---------|-------------|------|----------------------------|------------------------|
 | `squeue` | **`slurm_queue`** | job_id, partition, state, user, account, qos, reason | cpus, nodes, priority | time_limit, time_used, nodelist |
-| `sinfo`  | **`slurm_nodes`** | partition, state | nodes, memory_mb | cpus_state |
+| `sinfo`  | **`slurm_nodes`** | partition, state | nodes | cpus_state, memory_mb |
 | `sacct`  | **`slurm_accounting`** | job_id, partition, state, user, account, qos | cpus, nodes, elapsed_sec, cpu_sec | req_mem, start, submit, exit_code |
 | `sdiag`  | **`slurm_scheduler`** | *(host only)* | ~40 scheduler/backfill counters | — |
 
@@ -134,14 +134,17 @@ One point per partition + node-state (`sinfo` already aggregates the counts).
 [`telegraf.d/slurm-sinfo.conf`](telegraf.d/slurm-sinfo.conf)
 
 ```
-slurm_nodes,host=login01,partition=gpu,state=idle      nodes=4i,cpus_state="0/128/0/128",memory_mb=515000i
-slurm_nodes,host=login01,partition=gpu,state=allocated nodes=8i,cpus_state="256/0/0/256",memory_mb=515000i
-slurm_nodes,host=login01,partition=cpu,state=drain     nodes=1i,cpus_state="0/0/64/64",memory_mb=192000i
+slurm_nodes,host=login01,partition=gpu,state=idle      nodes=4i,cpus_state="0/128/0/128",memory_mb="515000"
+slurm_nodes,host=login01,partition=gpu,state=allocated nodes=8i,cpus_state="256/0/0/256",memory_mb="515000"
+slurm_nodes,host=login01,partition=cpu,state=drain     nodes=1i,cpus_state="0/0/64/64",memory_mb="192000+"
 ```
 
-Great for: how many nodes are down/draining, free vs busy capacity.
-(`cpus_state` is Slurm's `allocated/idle/other/total` string; split it in your
-dashboard if you want the four numbers.)
+Great for: how many nodes are down/draining, free vs busy capacity. The
+**`nodes`** count is the plottable number. `cpus_state` is Slurm's
+`allocated/idle/other/total` string, and `memory_mb` is a string too — when a
+(partition,state) group spans nodes of differing memory, sinfo prints a
+`+`-suffixed minimum like `192000+` (and `N/A` for unknown), so it's kept as a
+string rather than risking a parse error that would drop the whole scrape.
 
 ### 3. `sacct` → `slurm_accounting` (finished jobs)
 
@@ -180,13 +183,15 @@ A number stored as a string can't be graphed. These configs pin every numeric
 column's type, so they land in InfluxDB correctly:
 
 - **CSV collectors** (`slurm_queue`, `slurm_nodes`, `slurm_accounting`) set
-  `csv_column_types`, so `cpus`, `nodes`, `priority`, `elapsed_sec`, `cpu_sec`,
-  `memory_mb` are stored as **`long`** (integers).
+  `csv_column_types`, so `cpus`, `nodes`, `priority`, `elapsed_sec`, `cpu_sec`
+  are stored as **`long`** (integers).
 - **`slurm_scheduler`** comes from JSON, so its counters are stored as
-  **`double`**.
+  **`double`** (with `bf_active` a boolean).
 - Identifiers and human strings (`job_id`, `reason`, `time_limit`, `nodelist`,
-  `cpus_state`, `req_mem`, `exit_code`, timestamps) are intentionally **strings
-  / tags** — labels, not plot values.
+  `cpus_state`, `memory_mb`, `req_mem`, `exit_code`, timestamps) are
+  intentionally **strings / tags** — labels, not plot values. (`memory_mb` is a
+  string because grouped `sinfo` can emit `192000+`/`N/A`; the plottable
+  node-health number is the `nodes` count.)
 
 `./test/run-tests.sh` round-trips through InfluxDB and **verifies** every numeric
 field is `long`/`double` (see the report). Build graphs with the ready-made
@@ -204,10 +209,14 @@ queries in [`dashboards/`](dashboards/).
 ```
 
 `run-tests.sh` checks every collector (against live Slurm when present, else the
-bundled fixtures), verifies stored datatypes if an `influx` CLI is configured,
-and writes a clean **HTML report** capturing the git commit and the OS /
-Telegraf / Slurm / InfluxDB versions — so it's easy to re-validate against new
-versions with one command. See [`test/`](test/).
+bundled fixtures) and writes a clean **HTML report** capturing the git commit and
+the OS / Telegraf / Slurm / InfluxDB versions — so it's easy to re-validate
+against new versions with one command. If an `influx` CLI is configured it also
+**round-trips the data through InfluxDB and queries the schema back**, rendering a
+table of every measurement's tags and fields with their stored types — proving
+each value lands queryable and plottable. See the committed example,
+[`test/reports/influxdb-roundtrip-example.html`](test/reports/influxdb-roundtrip-example.html),
+and the harness in [`test/`](test/).
 
 ### Tested against real Slurm (19.05 → 25.11)
 

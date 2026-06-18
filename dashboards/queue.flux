@@ -5,28 +5,33 @@
 // Grafana panel. Replace the bucket name "slurm" with yours. For Grafana, swap
 // range(start: -5m) for range(start: v.timeRangeStart, stop: v.timeRangeStop).
 //
-// Data model reminder: one point per job per scrape; job_id is a tag (unique),
-// so we use last() to take each job's most recent sample, then count/sum.
+// Data model: one point per job per scrape; job_id AND state are tags. A job
+// that transitions PENDING->RUNNING therefore has TWO series (one per state).
+// To count each job ONCE in its CURRENT state, we collapse per job_id first
+// (group by job_id |> last() gives each job's most recent point) and only then
+// group by state. Skipping that job_id collapse double-counts transitioned jobs.
 // =============================================================================
 
 
 // ── Panel: jobs by state (pie / stat) ───────────────────────────────────────
-// How many jobs are RUNNING vs PENDING vs ... right now.
 from(bucket: "slurm")
   |> range(start: -5m)
   |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")
-  |> last()
+  |> group(columns: ["job_id"])
+  |> last()                              // one point per job = its current state
   |> group(columns: ["state"])
   |> count()
   |> rename(columns: {_value: "jobs"})
 
 
 // ── Panel: CPUs in use by partition (bar gauge) ──────────────────────────────
-// Total CPUs held by RUNNING jobs, per partition.
+// Total CPUs held by RUNNING jobs, per partition (current).
 from(bucket: "slurm")
   |> range(start: -5m)
-  |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus" and r.state == "RUNNING")
+  |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")
+  |> group(columns: ["job_id"])
   |> last()
+  |> filter(fn: (r) => r.state == "RUNNING")
   |> group(columns: ["partition"])
   |> sum()
   |> rename(columns: {_value: "cpus_in_use"})
@@ -36,6 +41,7 @@ from(bucket: "slurm")
 from(bucket: "slurm")
   |> range(start: -5m)
   |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")
+  |> group(columns: ["job_id"])
   |> last()
   |> group(columns: ["user"])
   |> count()
@@ -45,11 +51,13 @@ from(bucket: "slurm")
 
 
 // ── Panel: why are jobs pending? (table / pie) ───────────────────────────────
-// reason is a tag, so we can group by it directly.
+// reason is a tag (trimmed to a bounded set by the collector's regex processor).
 from(bucket: "slurm")
   |> range(start: -5m)
-  |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus" and r.state == "PENDING")
+  |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")
+  |> group(columns: ["job_id"])
   |> last()
+  |> filter(fn: (r) => r.state == "PENDING")
   |> group(columns: ["reason"])
   |> count()
   |> rename(columns: {_value: "jobs"})
@@ -57,7 +65,9 @@ from(bucket: "slurm")
 
 // ── Panel: running vs pending over time (time series) ────────────────────────
 // `every` should match your squeue collection interval (default 30s) so each
-// window holds one scrape = a true job count. Increase the range as needed.
+// window holds one scrape — then each job is counted once per scrape in the
+// state it had at that moment (it correctly moves from pending to running over
+// time). Keep `every` == the interval; a larger window sums multiple scrapes.
 from(bucket: "slurm")
   |> range(start: -24h)
   |> filter(fn: (r) => r._measurement == "slurm_queue" and r._field == "cpus")

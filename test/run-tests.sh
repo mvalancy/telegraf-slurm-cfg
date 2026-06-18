@@ -32,7 +32,7 @@ influx_ver="$(influxd version 2>/dev/null | head -1 || echo 'n/a (not required)'
 esc() { sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
 
 # ── 1+2. run each collector and check output ─────────────────────────────────
-declare -A OUT
+declare -A OUT MODE
 total=0; passed=0; cards=""; console=""
 for p in $PLUGINS; do
   total=$((total+1))
@@ -44,7 +44,7 @@ for p in $PLUGINS; do
     [ -n "$live" ] && { out="$live"; mode="live"; }
   fi
   [ -z "$out" ] && { out="$(run_collector "$p" fixture)"; mode="fixture"; }
-  OUT[$p]="$out"
+  OUT[$p]="$out"; MODE[$p]="$mode"
   rows="$(printf '%s' "$out" | grep -c . )"
   expect="$(collector_expect "$p")"; meas="${expect%% *}"
   fails=""
@@ -67,30 +67,64 @@ for p in $PLUGINS; do
   </div>"
 done
 
-# ── 3. optional: verify stored datatypes in InfluxDB ─────────────────────────
-types_section=""; type_fail=0
+# ── 3. round-trip through InfluxDB and query the schema BACK ──────────────────
+# Write every collector's output to a throwaway bucket, then ask InfluxDB for
+# each measurement's tag keys (+ example values) and field keys (+ stored type
+# and an example value). This proves the data is really queryable — in whatever
+# mode (live or fixture) each collector ran.
+schema_section=""; type_fail=0
+# NB: influx --raw CSV uses CRLF line endings — strip \r or names carry a trailing
+# \r that breaks downstream filters and lookups.
+tagkeys()   { influx query "import \"influxdata/influxdb/schema\" schema.measurementTagKeys(bucket:\"$1\", measurement:\"$2\")"   --raw 2>/dev/null | tr -d '\r' | awk -F, '/^,,/{print $4}' | grep -vE '^(_start|_stop|_field|_measurement)$'; }
+tagvals()   { influx query "import \"influxdata/influxdb/schema\" schema.measurementTagValues(bucket:\"$1\", measurement:\"$2\", tag:\"$3\")" --raw 2>/dev/null | tr -d '\r' | awk -F, '/^,,/{print $4}'; }
+fieldkeys() { influx query "import \"influxdata/influxdb/schema\" schema.measurementFieldKeys(bucket:\"$1\", measurement:\"$2\")" --raw 2>/dev/null | tr -d '\r' | awk -F, '/^,,/{print $4}'; }
+
 if command -v influx >/dev/null 2>&1 && influx bucket list >/dev/null 2>&1; then
   B="slurm_cfg_selftest"
   influx bucket delete -n "$B" >/dev/null 2>&1
-  # infinite retention so back-dated points (e.g. sacct stamped at job END time)
-  # are accepted during the type probe; the bucket is deleted right after.
-  if influx bucket create -n "$B" -r 0 >/dev/null 2>&1; then
+  if influx bucket create -n "$B" -r 0 >/dev/null 2>&1; then    # infinite retention (sacct stamps at job END time)
     for p in $PLUGINS; do printf '%s\n' "${OUT[$p]}" | influx write -b "$B" -p ns >/dev/null 2>&1; done
-    rows=""
+    blocks=""
     for p in $PLUGINS; do
-      meas="$(collector_measurement "$p")"
-      for f in $(collector_numeric "$p"); do
-        # wide range: sacct points are stamped at job END time, which can be days old
-        dt="$(influx query "from(bucket:\"$B\") |> range(start:-3650d) |> filter(fn:(r)=>r._measurement==\"$meas\" and r._field==\"$f\") |> last()" --raw 2>/dev/null | awk -F, '/^#datatype/{print $7; exit}')"
-        case "$dt" in long|double) ok=ok;; *) ok=bad; type_fail=$((type_fail+1));; esac
-        rows="${rows}<tr><td><code>$meas</code></td><td>$f</td><td>${dt:-missing}</td><td><span class='b ${ok/ok/pass}'>$([ $ok = ok ] && echo plottable || echo NOT NUMERIC)</span></td></tr>"
+      meas="$(collector_measurement "$p")"; numeric=" $(collector_numeric "$p") "
+      trows=""
+      for t in $(tagkeys "$B" "$meas"); do
+        vals="$(tagvals "$B" "$meas" "$t" | head -6 | paste -sd, -)"
+        trows="${trows}<tr><td><code>$t</code></td><td>$(printf '%s' "$vals" | esc)</td></tr>"
       done
+      [ -n "$trows" ] || trows="<tr><td colspan=2 class=mut>(no data — this collector produced nothing in this environment)</td></tr>"
+      frows=""
+      for f in $(fieldkeys "$B" "$meas"); do
+        res="$(influx query "from(bucket:\"$B\") |> range(start:-3650d) |> filter(fn:(r)=>r._measurement==\"$meas\" and r._field==\"$f\") |> last()" --raw 2>/dev/null | tr -d '\r')"
+        dt="$(printf '%s' "$res" | awk -F, '/^#datatype/{print $7; exit}')"
+        val="$(printf '%s' "$res" | awk -F, '/^,,/{print $7; exit}')"
+        case "$dt" in
+          long|double) badge="<span class='b pass'>plottable</span>";;
+          boolean)     badge="<span class='b pass'>boolean</span>";;
+          string)      badge="<span class=mut>label</span>";;
+          *)           badge="<span class=mut>${dt:-—}</span>";;
+        esac
+        # fields we expect to be numeric must be long/double, or it's a real bug
+        case "$numeric" in *" $f "*)
+          case "$dt" in long|double) :;; *) badge="<span class='b fail'>NOT NUMERIC</span>"; type_fail=$((type_fail+1));; esac ;;
+        esac
+        frows="${frows}<tr><td><code>$f</code></td><td>${dt:-—}</td><td>$(printf '%s' "$val" | esc)</td><td>$badge</td></tr>"
+      done
+      [ -n "$frows" ] || frows="<tr><td colspan=4 class=mut>(no data)</td></tr>"
+      blocks="${blocks}
+      <div class=card>
+        <div class=cardhead><span class=name><code>$meas</code></span><span class=meta>from $p &middot; ${MODE[$p]:-?} mode</span></div>
+        <p class=lbl>tags &mdash; queried from InfluxDB</p>
+        <table class=env><tr><th>tag</th><th>example values</th></tr>$trows</table>
+        <p class=lbl>fields &mdash; queried from InfluxDB</p>
+        <table class=env><tr><th>field</th><th>stored type</th><th>example</th><th></th></tr>$frows</table>
+      </div>"
     done
     influx bucket delete -n "$B" >/dev/null 2>&1
-    types_section="<h2>Field data types in InfluxDB</h2><p class=sub>Numeric fields must be <code>long</code> or <code>double</code> to plot. (String fields like job_id / reason are labels by design.)</p><table class=env><tr><th>measurement</th><th>field</th><th>stored type</th><th></th></tr>$rows</table>"
+    schema_section="<h2>InfluxDB round-trip — measurements, tags &amp; fields</h2><p class=sub>Each collector's line protocol was written to a throwaway bucket, then the tags and fields were queried back from InfluxDB. Numeric fields must be <code>long</code>/<code>double</code> to plot; strings/tags are labels by design.</p>$blocks"
   fi
 else
-  types_section="<h2>Field data types in InfluxDB</h2><p class=sub>Skipped — no <code>influx</code> CLI configured. Run on a host with InfluxDB to verify stored datatypes.</p>"
+  schema_section="<h2>InfluxDB round-trip</h2><p class=sub>Skipped — no <code>influx</code> CLI configured. Run on a host with InfluxDB to query the stored schema back.</p>"
 fi
 
 all_pass=$([ "$passed" -eq "$total" ] && [ "$type_fail" -eq 0 ] && echo yes || echo no)
@@ -120,6 +154,7 @@ pre.bad{color:#ffa198}
 .b.pass{background:rgba(46,160,67,.15);color:#3fb950;border:1px solid var(--ok)}
 .b.fail{background:rgba(209,36,47,.15);color:#ff7b72;border:1px solid var(--no)}
 .foot{color:var(--mut);font-size:12px;text-align:center;margin-top:24px}
+.mut{color:var(--mut)}
 </style></head><body><div class=wrap>
 <h1>telegraf-slurm-cfg — test report</h1>
 <p class=sub>Monitoring Slurm with Telegraf config only — no scripts.</p>
@@ -135,7 +170,7 @@ pre.bad{color:#ffa198}
 </table>
 <h2>Collectors</h2>
 $cards
-$types_section
+$schema_section
 <p class=foot>Re-run anytime with <code>./test/run-tests.sh</code>. Live Slurm is used automatically when present; otherwise bundled fixtures keep the test reproducible.</p>
 </div></body></html>
 HTML

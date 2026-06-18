@@ -26,14 +26,10 @@ jobs:
           tar -xzf telegraf.tar.gz
           echo "TELEGRAF=$(find "$PWD" -type f -name telegraf | head -1)" >> "$GITHUB_ENV"
 
-      - name: Validate Telegraf configs parse
-        run: |
-          for c in telegraf.d/*.conf; do
-            echo "== $c =="
-            "$TELEGRAF" --config "$c" --test-wait 0 --once --config-directory /dev/null >/dev/null 2>&1 \
-              || "$TELEGRAF" --config "$c" --test >/dev/null 2>&1 || true
-          done
-
+      # The real validation: run-tests.sh swaps each collector's command to read
+      # the bundled fixture (so no Slurm cluster is needed) but keeps the actual
+      # parser config, then checks every measurement/tag/field. It fails the job
+      # if any collector's config is broken.
       - name: Run test suite (fixtures)
         run: bash test/run-tests.sh report.html
 
