@@ -20,8 +20,20 @@ Flow: **Slurm command → Telegraf → InfluxDB → Grafana.**
 
 ## Install
 
+First, unzip this package on the machine that runs Slurm commands and `cd` in:
+
+```bash
+# `unzip` not installed? add it first:
+#   Debian/Ubuntu: sudo apt-get install -y unzip   •   RHEL/Rocky: sudo dnf install -y unzip
+unzip telegraf-slurm-cfg-*.zip
+cd telegraf-slurm-cfg
+```
+
+Then:
+
 1. **Install Telegraf** on a machine that can run `squeue`/`sinfo` (a login or
-   controller node).
+   controller node). See
+   [InfluxData's install guide](https://docs.influxdata.com/telegraf/v1/install/).
 
 2. **Add an InfluxDB output once** in `/etc/telegraf/telegraf.conf`:
 

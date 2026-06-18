@@ -72,8 +72,30 @@ picks the parser. Everything lives in the `.conf`.
 
 ## Quick start
 
-1. **Install Telegraf** on a machine that can run `squeue`/`sinfo`/etc.
-   (usually a login or controller node).
+**First, get the files** — either download the latest release zip and unzip it,
+or clone the repo. In a terminal on the machine that runs Slurm commands:
+
+```bash
+# Option A — the release zip (https://github.com/mvalancy/telegraf-slurm-cfg/releases).
+# `unzip` may not be installed; install it first if the command isn't found:
+#   Debian/Ubuntu:   sudo apt-get install -y unzip
+#   RHEL/Rocky/Alma: sudo dnf install -y unzip   (older: sudo yum install -y unzip)
+#   SUSE:            sudo zypper install -y unzip
+unzip telegraf-slurm-cfg-*.zip
+cd telegraf-slurm-cfg
+
+# Option B — clone the repo (needs git)
+git clone https://github.com/mvalancy/telegraf-slurm-cfg.git
+cd telegraf-slurm-cfg
+```
+
+Then:
+
+1. **Install Telegraf** on a machine that can run `squeue`/`sinfo`/etc. (usually a
+   login or controller node). See
+   [InfluxData's install guide](https://docs.influxdata.com/telegraf/v1/install/)
+   — on Debian/Ubuntu it's typically `sudo apt-get install -y telegraf` once their
+   repo is added.
 
 2. **Tell Telegraf where to send data** — add an output once, in
    `/etc/telegraf/telegraf.conf` (InfluxDB 2.x / 3.x):

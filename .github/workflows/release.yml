@@ -38,6 +38,27 @@ jobs:
           files: dist/*.zip
           generate_release_notes: true
           body: |
-            Drop-in Telegraf collectors for Slurm — copy `telegraf.d/*.conf` into
-            `/etc/telegraf/telegraf.d/` and restart Telegraf. See the README inside
-            the zip, or the [project README](https://github.com/mvalancy/telegraf-slurm-cfg).
+            **Drop-in Telegraf collectors for Slurm** — no scripts to maintain.
+
+            ### Install on Linux
+            Download the `.zip` below, then in a terminal:
+            ```bash
+            # 'unzip' not installed? add it first:
+            #   Debian/Ubuntu:    sudo apt-get install -y unzip
+            #   RHEL/Rocky/Alma:  sudo dnf install -y unzip      (older: sudo yum install -y unzip)
+            unzip telegraf-slurm-cfg-*.zip
+            cd telegraf-slurm-cfg
+
+            # copy the collectors you want into Telegraf's drop-in config directory:
+            sudo cp telegraf.d/*.conf /etc/telegraf/telegraf.d/
+
+            # restart Telegraf so it loads them:
+            sudo systemctl restart telegraf
+            ```
+            You also need a Telegraf **InfluxDB output** configured, and — only for
+            `slurm-sacct.conf` — the telegraf user needs Slurm **operator** access:
+            `sudo sacctmgr -i modify user telegraf set adminlevel=Operator`.
+
+            Full step-by-step is in `README.md` inside the zip; ready-made
+            Grafana / InfluxDB queries are in `dashboards/`. Tested live against
+            Slurm 19.05 → 25.11.
