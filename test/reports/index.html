@@ -1,0 +1,26 @@
+<!doctype html><html lang=en><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>telegraf-slurm-cfg — tested matrix</title>
+<style>
+:root{--bg:#0f1419;--card:#1a2029;--ink:#e6e6e6;--mut:#8b97a7;--line:#2a323d;--ok:#2ea043;--no:#d1242f;--acc:#58a6ff}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:840px;margin:0 auto;padding:32px 20px}h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--mut);margin:0 0 20px;font-size:13px}
+.summary{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.score{font-size:28px;font-weight:700}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+td,th{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left}tr:last-child td{border-bottom:0}
+th{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+a{color:var(--acc)}.b{font-weight:700;font-size:11px;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.b.pass{background:rgba(46,160,67,.15);color:#3fb950;border:1px solid var(--ok)}
+.b.fail{background:rgba(209,36,47,.15);color:#ff7b72;border:1px solid var(--no)}
+.mut{color:var(--mut)}.foot{color:var(--mut);font-size:12px;text-align:center;margin-top:24px}
+</style></head><body><div class=wrap>
+<h1>telegraf-slurm-cfg — tested across Slurm versions</h1>
+<p class=sub>Each row is a real single-node Slurm cluster (with slurmdbd) brought up in Docker. Cells show whether each collector ran against <b>live</b> Slurm or a bundled fixture (older Slurm can't launch jobs on a cgroup-v2 host, and <code>sdiag --json</code> predates Slurm 23.02).</p>
+<div class=summary><span class=score>4 / 4</span><span class="b pass">ALL PASS</span><span class=mut>OS / Slurm versions</span></div>
+<table><tr><th>OS</th><th>Slurm</th><th>squeue</th><th>sinfo</th><th>sacct</th><th>sdiag</th><th></th></tr>
+<tr><td>Ubuntu 20.04.6 LTS</td><td>19.05.5</td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><span class=mut>fixture</span></td><td><span class=mut>fixture</span></td><td><a href="report-ubuntu-20.04-slurm-19.05.5.html">report</a></td></tr><tr><td>Ubuntu 22.04.5 LTS</td><td>21.08.5</td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><span class=mut>fixture</span></td><td><a href="report-ubuntu-22.04-slurm-21.08.5.html">report</a></td></tr><tr><td>Ubuntu 24.04.4 LTS</td><td>23.11.4</td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><a href="report-ubuntu-24.04-slurm-23.11.4.html">report</a></td></tr><tr><td>Ubuntu 26.04 LTS</td><td>25.11.2</td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><span class="b pass">live</span></td><td><a href="report-ubuntu-26.04-slurm-25.11.2.html">report</a></td></tr>
+</table>
+<p class=foot>Generated 2026-06-18 04:05:04 UTC &middot; re-run with <code>./test/docker-matrix.sh</code></p>
+</div></body></html>

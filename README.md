@@ -94,7 +94,22 @@ picks the parser. Everything lives in the `.conf`.
    sudo systemctl restart telegraf
    ```
 
-4. **Check one before committing** (runs it once, prints what *would* be written,
+4. **Using `slurm-sacct.conf`? Give the `telegraf` user accounting access.**
+   Telegraf runs as the `telegraf` user, and `sacct --allusers` only returns
+   *other* users' finished jobs if that user has Slurm **operator** privilege —
+   otherwise the accounting collector silently sees just the `telegraf` user's
+   own (empty) jobs. Grant it once, as a Slurm admin:
+
+   ```bash
+   sudo sacctmgr -i modify user telegraf set adminlevel=Operator
+   # if the telegraf user isn't in the accounting DB yet, add it first:
+   sudo sacctmgr -i add user telegraf account=root adminlevel=Operator
+   ```
+
+   (`squeue` / `sinfo` / `sdiag` need no special privilege — skip this if you're
+   not collecting accounting.)
+
+5. **Check one before deploying** (runs it once, prints what *would* be written,
    touches nothing):
 
    ```bash
@@ -244,9 +259,13 @@ These collectors are validated against a **real single-node Slurm cluster (with
 All four pass. `squeue`/`sinfo` run live on every version; `sacct` and `sdiag`
 are validated live on every version that supports them. ¹ Slurm 19.05 can't
 launch jobs on a cgroup-v2 host, so there's no finished-job data — `sacct` uses
-the fixture there. ² `sdiag --json` doesn't exist before Slurm 23.02. The HTML
-report for each version is committed under [`test/reports/`](test/reports/); the
-harness lives in [`test/docker/`](test/docker/).
+the fixture there. ² `sdiag --json` doesn't exist before Slurm 23.02.
+
+A consolidated cross-version summary is committed at
+[`test/reports/index.html`](test/reports/index.html), with a detailed
+per-version report (`report-ubuntu-<rel>-slurm-<ver>.html`) behind each row, plus
+the InfluxDB round-trip example. The harness lives in
+[`test/docker/`](test/docker/).
 
 ---
 

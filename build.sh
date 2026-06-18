@@ -17,8 +17,9 @@ command -v zip >/dev/null 2>&1 || { echo "error: 'zip' is required (apt install 
 STAGE="$HERE/dist/$NAME"
 rm -rf "$HERE/dist"
 mkdir -p "$STAGE"
-cp -r "$HERE/telegraf.d"       "$STAGE/telegraf.d"
-cp    "$HERE/LICENSE"          "$STAGE/LICENSE"
+cp -r "$HERE/telegraf.d"          "$STAGE/telegraf.d"   # the collectors
+cp -r "$HERE/dashboards"          "$STAGE/dashboards"   # copy-paste Flux queries
+cp    "$HERE/LICENSE"             "$STAGE/LICENSE"
 cp    "$HERE/packaging/README.md" "$STAGE/README.md"
 
 zipname="$NAME${VER:+-$VER}.zip"

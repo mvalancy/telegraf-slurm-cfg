@@ -40,7 +40,21 @@ Flow: **Slurm command → Telegraf → InfluxDB → Grafana.**
    sudo systemctl restart telegraf
    ```
 
-4. **Check one first** (runs it once, prints what *would* be written, touches nothing):
+4. **Using `slurm-sacct.conf`? Give the `telegraf` user accounting access.**
+   `sacct --allusers` only returns *other* users' finished jobs if the user
+   running it (the `telegraf` user) has Slurm **operator** privilege — otherwise
+   the accounting collector silently sees only its own (empty) jobs. Grant it once,
+   as a Slurm admin:
+
+   ```bash
+   sudo sacctmgr -i modify user telegraf set adminlevel=Operator
+   # if the telegraf user isn't in the accounting DB yet, add it first:
+   sudo sacctmgr -i add user telegraf account=root adminlevel=Operator
+   ```
+
+   (`squeue` / `sinfo` / `sdiag` need no special privilege.)
+
+5. **Check one first** (runs it once, prints what *would* be written, touches nothing):
 
    ```bash
    telegraf --test --config telegraf.d/slurm-squeue.conf
@@ -71,9 +85,12 @@ block in any file to add a static `cluster` tag.
 - High-cardinality note: `slurm_queue` / `slurm_accounting` tag by `job_id`, so
   send them to a bucket with short retention (e.g. 7–30 days).
 
-Ready-made Grafana / InfluxDB dashboard queries are in the
-[`dashboards/`](https://github.com/mvalancy/telegraf-slurm-cfg/tree/main/dashboards)
-folder of the repo.
+## Dashboards
+
+The [`dashboards/`](dashboards/) folder (included in this package) is a copy-paste
+[Flux](https://docs.influxdata.com/flux/) cookbook for InfluxDB Data Explorer or
+Grafana — queue, nodes, scheduler, and accounting panels. Each `// ── Panel: …`
+block is one graph; change the bucket name to yours and paste it in.
 
 ## License
 

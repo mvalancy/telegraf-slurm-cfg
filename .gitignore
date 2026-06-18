@@ -17,3 +17,6 @@ slurm-*.out
 # Build output (run ./build.sh to regenerate)
 /dist/
 *.tar.gz
+
+# Intermediate matrix record (docker-matrix.sh rebuilds it + index.html)
+/test/reports/.matrix.tsv
