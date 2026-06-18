@@ -226,7 +226,11 @@ queries in [`dashboards/`](dashboards/).
 ./test/debug.sh squeue          # run ONE collector, print its line protocol
 ./test/debug.sh sdiag --fixture # force the bundled sample (no cluster needed)
 
-./test/run-tests.sh             # test ALL collectors -> report.html
+./test/run-tests.sh             # test ALL collectors here -> report.html
+
+./test/refresh-reports.sh       # rebuild EVERYTHING in test/reports/ in one go:
+                                # the cross-OS matrix + index.html + the InfluxDB
+                                # round-trip example (needs Docker + the influx CLI)
 ```
 
 `run-tests.sh` checks every collector (against live Slurm when present, else the

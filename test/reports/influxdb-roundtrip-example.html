@@ -28,8 +28,8 @@ pre.bad{color:#ffa198}
 <div class=summary><span class=score>4 / 4</span><span class="b pass">ALL PASSED</span><span style="color:var(--mut)">collectors verified &middot; </span></div>
 <h2>Environment</h2>
 <table class=env>
-<tr><td>Generated</td><td>2026-06-18 03:39:53 UTC</td></tr>
-<tr><td>Git commit</td><td><code>581d40e (dirty)</code></td></tr>
+<tr><td>Generated</td><td>2026-06-18 04:11:02 UTC</td></tr>
+<tr><td>Git commit</td><td><code>a1c6196</code></td></tr>
 <tr><td>OS</td><td>Ubuntu 22.04.5 LTS</td></tr>
 <tr><td>Telegraf</td><td>Telegraf 1.33.1 (git: HEAD@44f3a504)</td></tr>
 <tr><td>Slurm</td><td>slurm-wlm 21.08.5</td></tr>
@@ -39,13 +39,12 @@ pre.bad{color:#ffa198}
 
   <div class=card>
     <div class=cardhead><span class=name>squeue &rarr; <code>slurm_queue</code></span><span class='b pass'>PASS</span></div>
-    <p class=meta>mode: <b>live</b> &middot; rows: <b>4</b> &middot; checks: <b>10</b></p>
+    <p class=meta>mode: <b>live</b> &middot; rows: <b>3</b> &middot; checks: <b>10</b></p>
     <p class=lbl>command</p><pre>["squeue --all --noheader --format=%i|%P|%T|%u|%a|%q|%C|%D|%Q|%l|%M|%N|%r"]</pre>
     
-    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_queue,account=(null),host=login01,job_id=73,partition=debug,qos=(null),reason=None,state=RUNNING,user=alice cpus=2i,nodelist="localhost",nodes=1i,priority=4294901687i,time_limit="365-00:00:00",time_used="0:00" 1781753994000000000
-slurm_queue,account=(null),host=login01,job_id=74,partition=debug,qos=(null),reason=None,state=RUNNING,user=alice cpus=2i,nodelist="localhost",nodes=1i,priority=4294901686i,time_limit="365-00:00:00",time_used="0:00" 1781753994000000000
-slurm_queue,account=(null),host=login01,job_id=75,partition=debug,qos=(null),reason=None,state=RUNNING,user=alice cpus=2i,nodelist="localhost",nodes=1i,priority=4294901685i,time_limit="365-00:00:00",time_used="0:00" 1781753994000000000
-slurm_queue,account=(null),host=login01,job_id=76,partition=debug,qos=(null),reason=None,state=RUNNING,user=alice cpus=2i,nodelist="localhost",nodes=1i,priority=4294901684i,time_limit="365-00:00:00",time_used="0:00" 1781753994000000000</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_queue,account=(null),host=login01,job_id=77,partition=debug,qos=(null),reason=None,state=RUNNING,user=alice cpus=2i,nodelist="localhost",nodes=1i,priority=4294901683i,time_limit="365-00:00:00",time_used="0:00" 1781755863000000000
+slurm_queue,account=(null),host=login01,job_id=78,partition=debug,qos=(null),reason=None,state=RUNNING,user=alice cpus=2i,nodelist="localhost",nodes=1i,priority=4294901682i,time_limit="365-00:00:00",time_used="0:00" 1781755863000000000
+slurm_queue,account=(null),host=login01,job_id=79,partition=debug,qos=(null),reason=None,state=RUNNING,user=alice cpus=2i,nodelist="localhost",nodes=1i,priority=4294901681i,time_limit="365-00:00:00",time_used="0:00" 1781755863000000000</pre>
     
   </div>
   <div class=card>
@@ -53,8 +52,8 @@ slurm_queue,account=(null),host=login01,job_id=76,partition=debug,qos=(null),rea
     <p class=meta>mode: <b>live</b> &middot; rows: <b>2</b> &middot; checks: <b>6</b></p>
     <p class=lbl>command</p><pre>["sinfo --noheader --format=%R|%T|%D|%C|%m"]</pre>
     
-    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_nodes,host=login01,partition=debug,state=mixed cpus_state="8/16/0/24",memory_mb="1",nodes=1i 1781753994000000000
-slurm_nodes,host=login01,partition=gpu,state=mixed cpus_state="8/16/0/24",memory_mb="1",nodes=1i 1781753994000000000</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_nodes,host=login01,partition=debug,state=mixed cpus_state="6/18/0/24",memory_mb="1",nodes=1i 1781755864000000000
+slurm_nodes,host=login01,partition=gpu,state=mixed cpus_state="6/18/0/24",memory_mb="1",nodes=1i 1781755864000000000</pre>
     
   </div>
   <div class=card>
@@ -77,23 +76,23 @@ slurm_accounting,account=ml,host=login01,job_id=128842,partition=gpu,qos=high,st
     <p class=lbl>fixture input</p><pre>{
   "meta": { "plugin": { "data_parser": "data_parser/v0.0.44" }, "slurm": { "release": "25.11.2" } },
   "errors": [], "warnings": [],</pre>
-    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_scheduler,host=login01 agent_count=2,agent_queue_size=0,agent_thread_count=4,bf_active=false,bf_backfilled_het_jobs=0,bf_backfilled_jobs=890,bf_cycle_counter=2310,bf_cycle_last=455321,bf_cycle_max=982110,bf_cycle_mean=312045,bf_cycle_sum=720823950,bf_depth_mean=51,bf_depth_mean_try=22,bf_depth_sum=117810,bf_depth_try_sum=40320,bf_last_backfilled_jobs=43,bf_last_depth=233,bf_last_depth_try=80,bf_queue_len=470,bf_queue_len_mean=388,bf_queue_len_sum=896280,bf_table_size=233,bf_table_size_mean=233,bf_table_size_sum=538230,dbd_agent_queue_size=0,gettimeofday_latency=22,jobs_canceled=37,jobs_completed=1388,jobs_failed=2,jobs_pending=512,jobs_running=128,jobs_started=1402,jobs_submitted=1543,schedule_cycle_depth=126014,schedule_cycle_last=842,schedule_cycle_max=120345,schedule_cycle_mean=1187,schedule_cycle_mean_depth=14,schedule_cycle_per_minute=41,schedule_cycle_sum=10684787,schedule_cycle_total=9001,schedule_queue_length=480,server_thread_count=3 1781753996000000000</pre>
+    <p class=lbl>output (InfluxDB line protocol)</p><pre>slurm_scheduler,host=login01 agent_count=2,agent_queue_size=0,agent_thread_count=4,bf_active=false,bf_backfilled_het_jobs=0,bf_backfilled_jobs=890,bf_cycle_counter=2310,bf_cycle_last=455321,bf_cycle_max=982110,bf_cycle_mean=312045,bf_cycle_sum=720823950,bf_depth_mean=51,bf_depth_mean_try=22,bf_depth_sum=117810,bf_depth_try_sum=40320,bf_last_backfilled_jobs=43,bf_last_depth=233,bf_last_depth_try=80,bf_queue_len=470,bf_queue_len_mean=388,bf_queue_len_sum=896280,bf_table_size=233,bf_table_size_mean=233,bf_table_size_sum=538230,dbd_agent_queue_size=0,gettimeofday_latency=22,jobs_canceled=37,jobs_completed=1388,jobs_failed=2,jobs_pending=512,jobs_running=128,jobs_started=1402,jobs_submitted=1543,schedule_cycle_depth=126014,schedule_cycle_last=842,schedule_cycle_max=120345,schedule_cycle_mean=1187,schedule_cycle_mean_depth=14,schedule_cycle_per_minute=41,schedule_cycle_sum=10684787,schedule_cycle_total=9001,schedule_queue_length=480,server_thread_count=3 1781755865000000000</pre>
     
   </div>
 <h2>InfluxDB round-trip — measurements, tags &amp; fields</h2><p class=sub>Each collector's line protocol was written to a throwaway bucket, then the tags and fields were queried back from InfluxDB. Numeric fields must be <code>long</code>/<code>double</code> to plot; strings/tags are labels by design.</p>
       <div class=card>
         <div class=cardhead><span class=name><code>slurm_queue</code></span><span class=meta>from squeue &middot; live mode</span></div>
         <p class=lbl>tags &mdash; queried from InfluxDB</p>
-        <table class=env><tr><th>tag</th><th>example values</th></tr><tr><td><code>account</code></td><td>(null)</td></tr><tr><td><code>host</code></td><td>login01</td></tr><tr><td><code>job_id</code></td><td>73,74,75,76</td></tr><tr><td><code>partition</code></td><td>debug</td></tr><tr><td><code>qos</code></td><td>(null)</td></tr><tr><td><code>reason</code></td><td>None</td></tr><tr><td><code>state</code></td><td>RUNNING</td></tr><tr><td><code>user</code></td><td>alice</td></tr></table>
+        <table class=env><tr><th>tag</th><th>example values</th></tr><tr><td><code>account</code></td><td>(null)</td></tr><tr><td><code>host</code></td><td>login01</td></tr><tr><td><code>job_id</code></td><td>77,78,79</td></tr><tr><td><code>partition</code></td><td>debug</td></tr><tr><td><code>qos</code></td><td>(null)</td></tr><tr><td><code>reason</code></td><td>None</td></tr><tr><td><code>state</code></td><td>RUNNING</td></tr><tr><td><code>user</code></td><td>alice</td></tr></table>
         <p class=lbl>fields &mdash; queried from InfluxDB</p>
-        <table class=env><tr><th>field</th><th>stored type</th><th>example</th><th></th></tr><tr><td><code>cpus</code></td><td>long</td><td>2</td><td><span class='b pass'>plottable</span></td></tr><tr><td><code>nodelist</code></td><td>string</td><td>localhost</td><td><span class=mut>label</span></td></tr><tr><td><code>nodes</code></td><td>long</td><td>1</td><td><span class='b pass'>plottable</span></td></tr><tr><td><code>priority</code></td><td>long</td><td>4294901687</td><td><span class='b pass'>plottable</span></td></tr><tr><td><code>time_limit</code></td><td>string</td><td>365-00:00:00</td><td><span class=mut>label</span></td></tr><tr><td><code>time_used</code></td><td>string</td><td>0:00</td><td><span class=mut>label</span></td></tr></table>
+        <table class=env><tr><th>field</th><th>stored type</th><th>example</th><th></th></tr><tr><td><code>cpus</code></td><td>long</td><td>2</td><td><span class='b pass'>plottable</span></td></tr><tr><td><code>nodelist</code></td><td>string</td><td>localhost</td><td><span class=mut>label</span></td></tr><tr><td><code>nodes</code></td><td>long</td><td>1</td><td><span class='b pass'>plottable</span></td></tr><tr><td><code>priority</code></td><td>long</td><td>4294901683</td><td><span class='b pass'>plottable</span></td></tr><tr><td><code>time_limit</code></td><td>string</td><td>365-00:00:00</td><td><span class=mut>label</span></td></tr><tr><td><code>time_used</code></td><td>string</td><td>0:00</td><td><span class=mut>label</span></td></tr></table>
       </div>
       <div class=card>
         <div class=cardhead><span class=name><code>slurm_nodes</code></span><span class=meta>from sinfo &middot; live mode</span></div>
         <p class=lbl>tags &mdash; queried from InfluxDB</p>
         <table class=env><tr><th>tag</th><th>example values</th></tr><tr><td><code>host</code></td><td>login01</td></tr><tr><td><code>partition</code></td><td>debug,gpu</td></tr><tr><td><code>state</code></td><td>mixed</td></tr></table>
         <p class=lbl>fields &mdash; queried from InfluxDB</p>
-        <table class=env><tr><th>field</th><th>stored type</th><th>example</th><th></th></tr><tr><td><code>cpus_state</code></td><td>string</td><td>8/16/0/24</td><td><span class=mut>label</span></td></tr><tr><td><code>memory_mb</code></td><td>string</td><td>1</td><td><span class=mut>label</span></td></tr><tr><td><code>nodes</code></td><td>long</td><td>1</td><td><span class='b pass'>plottable</span></td></tr></table>
+        <table class=env><tr><th>field</th><th>stored type</th><th>example</th><th></th></tr><tr><td><code>cpus_state</code></td><td>string</td><td>6/18/0/24</td><td><span class=mut>label</span></td></tr><tr><td><code>memory_mb</code></td><td>string</td><td>1</td><td><span class=mut>label</span></td></tr><tr><td><code>nodes</code></td><td>long</td><td>1</td><td><span class='b pass'>plottable</span></td></tr></table>
       </div>
       <div class=card>
         <div class=cardhead><span class=name><code>slurm_accounting</code></span><span class=meta>from sacct &middot; fixture mode</span></div>
