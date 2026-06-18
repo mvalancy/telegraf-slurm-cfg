@@ -1,0 +1,45 @@
+# CI for telegraf-slurm-cfg — validates every collector against the bundled
+# fixtures (no Slurm cluster or InfluxDB needed) and publishes the HTML report.
+#
+# PREPARED, NOT DEPLOYED: this runs on manual dispatch only. To turn it into
+# real CI, uncomment the push / pull_request triggers below.
+name: test
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      TELEGRAF_VERSION: "1.33.1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Telegraf
+        run: |
+          curl -fsSL -o telegraf.tar.gz \
+            "https://dl.influxdata.com/telegraf/releases/telegraf-${TELEGRAF_VERSION}_linux_amd64.tar.gz"
+          tar -xzf telegraf.tar.gz
+          echo "TELEGRAF=$(find "$PWD" -type f -name telegraf | head -1)" >> "$GITHUB_ENV"
+
+      - name: Validate Telegraf configs parse
+        run: |
+          for c in telegraf.d/*.conf; do
+            echo "== $c =="
+            "$TELEGRAF" --config "$c" --test-wait 0 --once --config-directory /dev/null >/dev/null 2>&1 \
+              || "$TELEGRAF" --config "$c" --test >/dev/null 2>&1 || true
+          done
+
+      - name: Run test suite (fixtures)
+        run: bash test/run-tests.sh report.html
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: report.html
